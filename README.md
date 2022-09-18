@@ -10,3 +10,6 @@ is where the parameters are assigned and writes to cost_table.csv, par_bounds.cs
 
 # testing_main_figures.Rmd 
 reassigns the parameters and bounds and writes to cost_table.csv, par_bounds.csv, and par_table.csv, then it uses these to generate all the figures in the main text and supplement of the manuscript. These are all specific to UT in the fall of 2021.
+
+# app.R 
+is the original app developed in Fall of 2021. The current version has been modified to increase flexibility for future variants. 
