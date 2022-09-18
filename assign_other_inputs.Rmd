@@ -1,0 +1,110 @@
+---
+title: "assign_parameter_vals"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+rm(list=ls())
+
+# vaccine and immunity parameters 
+e_v = 0.5 
+sigma_v = 0.36 # https://www.gov.il/en/departments/news/06072021-04
+sym_red = 0.3
+psym_v = sym_red/sigma_v
+
+
+# test parameters
+Sp = 0.995 # test specificity
+Se = 0.9 # test sensitivity
+w_v = 0.5 # proportion of vaccinated population willing to test
+w_u = 0.5 # proportion of unvaccinated population willing to test
+f_v = 0#1/30 # frequency of testing in vaccinated individuals
+f_u =0 # frequency of testing in unvaccinated individuals
+is = 0.925 # probability of isolating given a positive test 
+is_sym = 0.25 # probability of isolating given symptoms
+k = 1/2 # rate of confirmation testing
+r_r = 1/7 # rate of leaving quarantine asymptomatic or symptomatic quarantine states
+
+# epidemiological parameters
+R0 = 5
+t_exposed = 3
+t_pre_sym = 2.3
+t_inf = 7
+t_sym_state = t_inf-t_pre_sym
+t_quarantine = 7
+t_iso = 2 # time to isolate if symptomatic
+psym = 0.6
+intros_per_week = 5 # something arbitrary for now, lets say 5 infections per week
+avg_time_asym = psym*t_pre_sym + (1-psym)*t_inf
+avg_time_asym_v= psym_v*t_pre_sym + (1-psym_v)*t_inf
+# sanity checks (these don't go into par table)
+delta_au = 1/avg_time_asym
+delta_av = 1/avg_time_asym_v
+delta_s = 1/t_sym_state
+delta_q = 1/t_quarantine
+beta_a = R0*1/t_inf #transmission rate of asymptomatic individuals
+beta_s = R0*1/t_inf # transmission rate of symptomatic individuals 
+
+gamma = 1/3 # rate of transition from exposed to infectious
+init_prev = 528*2/100000 # initial disease prevalence on campus (0.2%) 9x7*3=189 per 100,000
+init_rec = 0.40
+init_vacc = 0.57
+odds_inf_not_vac = 1
+init_ru = init_rec- init_rec*init_vacc
+init_rv = init_rec*init_vacc
+init_sv = (1-init_rec)*init_vacc 
+#init_ru = 0.1 # initial recovered unvaccinated
+#init_rv = 0.2 # initial vaccinated and previously infected
+#init_sv = 0.3 # initial vaccinated susceptible
+
+# scenario parameters
+N<- 50000
+duration_school_year = 113
+tdays<-seq(from = 0, to = duration_school_year, by = 1)
+dates<-seq(from = as.Date("2021-08-25"), by = "day", length.out = duration_school_year+1)
+
+# cost parameters
+PCR_price = 50
+RT_price = 12
+online_price = 100000
+pct_pos_isofac = 2229/3271 # number of student-days in ISOFAC/ number of total positives during that time
+isofac_price = 300 #  $100 dollars per student per day
+contact_tracing_price = 50 # cost of labor to reach out to each cases contacts
+sequencing_price = 60 # need to factor this in
+DLL_price = 500*15/135#500 per credit * 18 credits per semester/ 135 days per semester
+risk_tolerance = 'CDC red' 
+
+
+# Uncertainty
+nsamps<-100
+R0vals<-c(4.5, 5.5)
+init_rec_vals<-c(0.32, 0.48)
+psym_vals<-c(0.5, 0.7)
+sigma_v_vals<-c(0.25, 0.5) # not sure how to estimate this
+sym_red_vals<-c(0.27, 0.35)
+is_vals<-c(0.9, 0.95)
+is_sym_vals<-c(0.2, 0.33)
+intro_vals<-c(4, 6)
+init_vacc_vals<-c(0.46, 0.64)
+init_prev_vals<-c((474*2)/100000, (596*2)/100000) # update from NYT case data for students
+
+
+
+
+
+cost_table<-data.frame(PCR_price, RT_price, online_price, DLL_price, pct_pos_isofac,
+                       isofac_price, contact_tracing_price, sequencing_price) 
+
+par_table<-data.frame(N, init_prev, init_rec, init_vacc, odds_inf_not_vac, duration_school_year, R0,
+                      t_pre_sym,
+                      t_inf, t_sym_state, t_quarantine,t_iso,  psym, gamma,psym, e_v, sigma_v,
+                      sym_red,intros_per_week,
+                      Sp, Se, w_v, w_u, f_v,f_u, is,is_sym, k)
+par_bounds<-data.frame(R0vals,init_rec_vals, psym_vals, sigma_v_vals, sym_red_vals, is_sym_vals, is_vals, intro_vals, init_prev_vals, init_vacc_vals)
+write.csv(cost_table, 'cost_table.csv',row.names = FALSE)
+write.csv(par_table,'par_table_students.csv', row.names = FALSE)
+write.csv(par_bounds, 'par_bounds_students.csv', row.names = FALSE)
+```
+
+
